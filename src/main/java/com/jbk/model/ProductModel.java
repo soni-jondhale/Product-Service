@@ -99,5 +99,11 @@ public class ProductModel {
 	public void setDeliveryCharges(int deliveryCharges) {
 		this.deliveryCharges = deliveryCharges;
 	}
+public void display()
+{
+System.out.println("Product id is:"+productId);
+
+System.out.println("Product name is:"+productName);
+}
 
 }
