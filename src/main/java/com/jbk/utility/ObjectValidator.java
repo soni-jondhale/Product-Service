@@ -5,16 +5,22 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestTemplate;
 
 import com.jbk.exception.ResourceNotExistException;
 import com.jbk.exception.SomethingWentWrong;
 import com.jbk.model.ProductModel;
+import com.jbk.model.SupplierModel;
 
 
 @Component
 public class ObjectValidator {
 	
-public static Map<String,String>validateProduct(ProductModel productModel)
+	@Autowired
+	private RestTemplate restTemplate;
+	
+public  Map<String,String>validateProduct(ProductModel productModel)
 {
 		Map<String, String>validateMap=new HashMap<String,String>();
 		
@@ -40,18 +46,44 @@ public static Map<String,String>validateProduct(ProductModel productModel)
 		{
 			validateMap.put("product charges", "Delivery charges should not be negative");
 		}
-		if(supplierId>0)
-		{
+//		if(supplierId>0)
+//		{
+//			try {
+//				//supplierService.getSupplierById(supplierId);//search-dummy.restapiexample.com
+//				
+//			} catch (ResourceNotExistException e) {
+//				validateMap.put("supplier", e.getMessage());
+//			}catch(SomethingWentWrong e) {
+//				validateMap.put("supplier", e.getMessage());
+//			}
+//		}else{
+//			validateMap.put("supplier", "Invalid supplier Id");
+//		}
+		
+		if (supplierId > 0) {
 			try {
-				//supplierService.getSupplierById(supplierId);//search-dummy.restapiexample.com
+				//supplierService.getSupplierById(supplierId);
 				
+				try {
+					SupplierModel supplierModel = restTemplate.getForObject(
+							"http://SUPPLIER-SERVICE/supplier/get-supplier-by-id/" + productModel.getSupplierId(),
+							SupplierModel.class);
+					if(supplierModel==null || supplierModel.getSupplierId()<=0) {
+						validateMap.put("Supplier", "Invalid Supplier Id");
+					}
+
+
+				} catch (ResourceAccessException e) {
+					validateMap.put("Supplier", "Supplier Service is down");
+				}
+
 			} catch (ResourceNotExistException e) {
-				validateMap.put("supplier", e.getMessage());
-			}catch(SomethingWentWrong e) {
-				validateMap.put("supplier", e.getMessage());
+				validateMap.put("Supplier", e.getMessage());
+			} catch (SomethingWentWrong e) {
+				validateMap.put("Supplier", e.getMessage());
 			}
-		}else{
-			validateMap.put("supplier", "Invalid supplier Id");
+		} else {
+			validateMap.put("Supplier", "Invalid Supplier Id");
 		}
 		
 		
